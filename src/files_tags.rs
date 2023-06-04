@@ -1,3 +1,5 @@
+use crate::structs::{Item, ItemKind, Tag};
+use crate::tag_parser::tag_parser;
 use std::collections::HashMap;
 use std::env;
 use std::ffi::OsStr;
@@ -5,8 +7,8 @@ use std::fs;
 use std::path::Path;
 use std::process;
 
-pub fn get_files_tags(tag_parser: &dyn Fn(String) -> Vec<String>) -> HashMap<String, Vec<String>> {
-    let mut tags_map: HashMap<String, Vec<String>> = HashMap::new();
+pub fn get_files_tags() -> HashMap<Item, Vec<Tag>> {
+    let mut tags_map: HashMap<Item, Vec<Tag>> = HashMap::new();
     let basedir_env = format!("{}/mindweb/", env::var("HOME").unwrap());
     let basedir_path = Path::new(&basedir_env);
     let basedir_entries = fs::read_dir(&basedir_path).unwrap_or_else(|_err| {
@@ -26,7 +28,11 @@ pub fn get_files_tags(tag_parser: &dyn Fn(String) -> Vec<String>) -> HashMap<Str
             Err(_) => continue,
         };
         let tags = tag_parser(contents);
-        tags_map.insert(format!("file:{path_string}"), tags);
+        let item = Item {
+            location: path_string,
+            kind: ItemKind::File,
+        };
+        tags_map.insert(item, tags);
     }
     return tags_map;
 }

@@ -1,3 +1,4 @@
+use crate::structs::{Tag, TagKind};
 use lazy_static::lazy_static;
 use regex::Regex;
 
@@ -11,18 +12,21 @@ lazy_static! {
         Regex::new(r"(?P<tag>([\w\-_.]*[^.])(@\w+)(\.\w+(\.\w+)?[^.\W]))").unwrap();
 }
 
-pub fn tag_parser(contents: String) -> Vec<String> {
-    let run_regex = |regex: &Regex| -> Vec<String> {
+pub fn tag_parser(contents: String) -> Vec<Tag> {
+    let run_regex = |regex: &Regex, kind: TagKind| -> Vec<Tag> {
         regex
             .captures_iter(&contents)
-            .map(|element| String::from(&(element["tag"])))
+            .map(|element| Tag {
+                text: String::from(&(element["tag"])),
+                kind,
+            })
             .collect()
     };
     let mut tags = vec![];
-    tags.extend(run_regex(&TAGS_BRACKETS_REGEX));
-    tags.extend(run_regex(&TAGS_HASH_REGEX));
-    tags.extend(run_regex(&TAGS_BOLD_REGEX));
-    tags.extend(run_regex(&TAGS_PHONE_REGEX));
-    tags.extend(run_regex(&TAGS_EMAIL_REGEX));
+    tags.extend(run_regex(&TAGS_BRACKETS_REGEX, TagKind::Tag));
+    tags.extend(run_regex(&TAGS_HASH_REGEX, TagKind::Tag));
+    tags.extend(run_regex(&TAGS_BOLD_REGEX, TagKind::Tag));
+    tags.extend(run_regex(&TAGS_PHONE_REGEX, TagKind::Phone));
+    tags.extend(run_regex(&TAGS_EMAIL_REGEX, TagKind::Email));
     return tags;
 }
